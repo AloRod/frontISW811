@@ -1,11 +1,9 @@
 import React from 'react';
-import Register from './pages/Register';
+import Login from './pages/Login';
 
 const App = () => {
     return (
-        <div className="min-h-screen bg-blue-900 flex items-center justify-center">
-            <Register />
-        </div>
+        <Login />
     );
 };
 
