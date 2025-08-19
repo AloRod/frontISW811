@@ -1,5 +1,7 @@
 import React from 'react';
-import axios from 'axios';
+import axios from '../api/axios';
+import { Link, Navigate } from "react-router";
+import { useNavigate } from "react-router";
 
 const Register = () => {
     const [formData, setFormData] = React.useState({
@@ -10,19 +12,45 @@ const Register = () => {
     });
     const [error, setError] = React.useState(null);
     const [isLoading, setIsLoading] = React.useState(false);
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        setError(null);       
-        try {             
+        setError(null);
+
+        try {
             const response = await axios.post('/register', formData);
-            console.log('Registration successful:', response.data);
-        } catch (err) { 
-            setError('Registration failed. Please try again.');         
+
+            if (response.status === 201) {
+                navigate("/");
+            }
+
+        } catch (err) {
+            console.error('Error:', err);
+
+            // Si hay respuesta del servidor
+            if (err.response?.data) {
+                const { data, status } = err.response;
+
+                if (status === 422 && data.errors) {
+                    // Errores de validación: mostrar el primer error encontrado
+                    const firstError = Object.values(data.errors)[0];
+                    setError(Array.isArray(firstError) ? firstError[0] : firstError);
+                } else if (data.message) {
+                    // Mensaje de error del servidor
+                    setError(data.message);
+                } else {
+                    setError('Error en el registro. Intente nuevamente.');
+                }
+            } else {
+                // Error de conexión
+                setError('No se pudo conectar con el servidor.');
+            }
+
         } finally {
-            setIsLoading(false);         
-        } 
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -98,11 +126,10 @@ const Register = () => {
                         <button
                             onClick={handleSubmit}
                             disabled={isLoading}
-                            className={`w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold rounded-lg shadow-lg transition-all duration-200 transform ${
-                                isLoading 
-                                    ? 'opacity-50 cursor-not-allowed' 
+                            className={`w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold rounded-lg shadow-lg transition-all duration-200 transform ${isLoading
+                                    ? 'opacity-50 cursor-not-allowed'
                                     : 'hover:scale-[1.02] hover:shadow-xl'
-                            }`}
+                                }`}
                         >
                             {isLoading ? (
                                 <div className="flex items-center justify-center">
@@ -118,9 +145,9 @@ const Register = () => {
                     <div className="mt-8 text-center">
                         <p className="text-slate-400">
                             Already have an account?{' '}
-                            <button className="text-blue-400 hover:text-blue-300 font-medium transition-colors duration-200">
+                            <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors duration-200">
                                 Login
-                            </button>
+                            </Link>
                         </p>
                     </div>
                 </div>

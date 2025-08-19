@@ -1,7 +1,12 @@
 import React from 'react';
 import axios from '../api/axios';
+import { Link } from "react-router"; 
+import { useAuth } from '../context/AuthContext';
 
+useAuth
 const Login = () => {
+    const { login } = useAuth();
+
     const [formData, setFormData] = React.useState({
         email: '',
         password: '',
@@ -18,15 +23,17 @@ const Login = () => {
             const response = await axios.post('/login', formData);
             console.log (response);
             if (response.status !== 200) {
+                setError('Login failed. Please check your credentials.');
                 throw new Error('Login failed');
             }
 
-            //const data = await response.json();
+            const data = response.data;
             // Aquí puedes guardar el token o redirigir al usuario
-            console.log('Login successful:', data);
-            alert('Login successful!');
+            const user = data.data;
+            login(user.id, `${user.first_name} ${user.last_name}`);
         } catch (err) {
             setError('Login failed. Please check your credentials.');
+            console.error(err);
         } finally {
             setIsLoading(false);
         }
@@ -101,9 +108,9 @@ const Login = () => {
                     <div className="mt-8 text-center">
                         <p className="text-slate-400">
                             Don't have an account?{' '}
-                            <button className="text-blue-400 hover:text-blue-300 font-medium transition-colors duration-200">
+                            <Link to="/register" className="text-blue-400 hover:text-blue-300 font-medium transition-colors duration-200">
                                 Register
-                            </button>
+                            </Link>
                         </p>
                     </div>
                 </div>
