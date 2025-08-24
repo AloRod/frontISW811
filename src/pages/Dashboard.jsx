@@ -5,6 +5,7 @@ import ImmediatePostForm from '../components/ImmediatePostForm';
 import SocialAccountsPanel from '../components/SocialAccountsPanel';
 import Alert from '../components/Alert';
 import { BarChart3, Link, Calendar } from 'lucide-react';
+import config from '../config/env';
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -14,17 +15,51 @@ const Dashboard = () => {
 
     useEffect(() => {
         fetchConnections();
+    }, [user?.id]);
+
+    // Recargar conexiones cuando el usuario regrese de autorización OAuth
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const authSuccess = urlParams.get('auth_success');
+        
+        if (authSuccess === 'true') {
+            // Recargar conexiones después de una autorización exitosa
+            setTimeout(() => {
+                fetchConnections();
+                // Limpiar parámetros de URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }, 1000);
+        }
     }, []);
 
     const fetchConnections = async () => {
+        if (!user?.id) return;
+        
         try {
             setLoading(true);
-            // Aquí deberías hacer una llamada al backend para obtener las conexiones del usuario
-            // Por ahora usaremos un estado local
-            setConnections([]);
+            // Obtener las conexiones reales del usuario desde el backend
+            const response = await axios.get(`${config.API_URL}/connections/user/${user.id}/platform-status`);
+            const statusData = response.data.data || response.data;
+            
+            if (Array.isArray(statusData)) {
+                // Filtrar solo las conexiones activas y transformar el formato
+                const activeConnections = statusData
+                    .filter(item => item.status === true)
+                    .map(item => ({
+                        id: item.id,
+                        platform: item.platform,
+                        status: item.status,
+                        user_id: item.user_id
+                    }));
+                
+                setConnections(activeConnections);
+            } else {
+                setConnections([]);
+            }
         } catch (err) {
+            console.error('Error fetching connections:', err);
             setError('Error al cargar las conexiones');
-            console.error(err);
+            setConnections([]);
         } finally {
             setLoading(false);
         }

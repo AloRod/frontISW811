@@ -19,6 +19,13 @@ const ImmediatePostForm = ({ connections, onPostSuccess }) => {
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
 
+    const getDateTime = () => {
+        const now = new Date();
+        const date = now.toISOString().split('T')[0];
+        const time = now.toTimeString().split(' ')[0];
+        return { date, time };
+    };
+
     const socialNetworks = [
         { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: 'bg-blue-500' },
         { id: 'reddit', name: 'Reddit', icon: MessageSquare, color: 'bg-orange-500' },
@@ -36,51 +43,47 @@ const ImmediatePostForm = ({ connections, onPostSuccess }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        if (!formData.postText.trim()) {
-            setError('Por favor, escribe el contenido de tu publicación');
-            return;
-        }
 
-        if (formData.selectedNetworks.length === 0) {
-            setError('Por favor, selecciona al menos una red social');
-            return;
-        }
+        if (formData.selectedNetworks.length > 0) {
+            setIsSubmitting(true);
 
-        setIsSubmitting(true);
-        setError(null);
-        setSuccess(false);
-
-        try {
-            // Crear el post en el backend
-            const postData = {
-                user_id: user.id,
-                post_text: formData.postText,
-                social_network: formData.selectedNetworks.join(',')
+            const dateTime = getDateTime();
+            const body = {
+                "date": dateTime.date,
+                "time": dateTime.time,
+                "status": "posted",
+                "user_id": user.id,
+                "post_text": formData.postText,
+                "social_network": formData.selectedNetworks.toString()
             };
 
-            const response = await axios.post('/posts', postData);
+            try {
+                const response = await axios.post('/histories', body);
 
-            if (response.status === 201) {
-                setSuccess(true);
-                setFormData({
-                    postText: '',
-                    selectedNetworks: []
-                });
-                onPostSuccess?.();
-                
-                // Limpiar mensaje de éxito después de 3 segundos
-                setTimeout(() => setSuccess(false), 3000);
+                if (response.status === 201) {
+                    setSuccess(true);
+                    setFormData({
+                        postText: '',
+                        selectedNetworks: []
+                    });
+                    onPostSuccess?.();
+                    
+                    // Limpiar mensaje de éxito después de 3 segundos
+                    setTimeout(() => setSuccess(false), 3000);
+                }
+            } catch (error) {
+                console.error(error);
+                const errorMessage = error.response?.data?.message || error.message || 'Error al publicar. Por favor, intenta de nuevo.';
+                setError(errorMessage);
+            } finally {
+                setIsSubmitting(false);
             }
-        } catch (err) {
-            console.error('Error al publicar:', err);
-            setError('Error al publicar. Por favor, intenta de nuevo.');
-        } finally {
-            setIsSubmitting(false);
+        } else {
+            setError('You must choose 1 social network');
         }
     };
 
-    const hasConnectedNetworks = connections.length > 0;
+    const hasConnectedNetworks = connections && connections.length > 0;
 
     if (!hasConnectedNetworks) {
         return (
@@ -144,7 +147,7 @@ const ImmediatePostForm = ({ connections, onPostSuccess }) => {
                 {/* Selección de redes sociales */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-3">
-                        Selecciona las redes sociales
+                        Selecciona las redes sociales ({formData.selectedNetworks.length} seleccionadas)
                     </label>
                     <div className="grid grid-cols-2 gap-3">
                         {socialNetworks.map((network) => {
@@ -172,7 +175,7 @@ const ImmediatePostForm = ({ connections, onPostSuccess }) => {
                                         <div className="text-left">
                                             <div className="font-medium text-gray-900">{network.name}</div>
                                             <div className="text-sm text-gray-500">
-                                                {isConnected ? 'Conectado' : 'No conectado'}
+                                                {isConnected ? '✅ Conectado' : '❌ No conectado'}
                                             </div>
                                         </div>
                                     </div>
@@ -190,6 +193,13 @@ const ImmediatePostForm = ({ connections, onPostSuccess }) => {
                             );
                         })}
                     </div>
+                    {connections.length === 0 && (
+                        <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                            <p className="text-sm text-yellow-800">
+                                💡 No tienes redes sociales conectadas. Ve a la sección de conexiones para conectar tus cuentas.
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 {/* Botón de publicación */}
