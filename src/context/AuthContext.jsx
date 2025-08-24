@@ -6,23 +6,37 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => { //crear proveedor
   const [auth, setAuth] = useState(localStorage.getItem('auth')); 
-  const [user, setUser] = useState(localStorage.getItem('id'));
+  
+  // Obtener el objeto user del localStorage o crear uno por defecto
+  const getUserFromStorage = () => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        return JSON.parse(storedUser);
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
+        return null;
+      }
+    }
+    return null;
+  };
+
+  const [user, setUser] = useState(getUserFromStorage());
 
   const login = (id, name) => {
+    const userObject = { id, name };
     localStorage.setItem('auth', true);
-    localStorage.setItem('id', id);
-    localStorage.setItem('name', name);
+    localStorage.setItem('user', JSON.stringify(userObject));
     setAuth(true);
-    setUser(id);
+    setUser(userObject);
   };
 
   const logout = () => {
     localStorage.removeItem('auth');
-    localStorage.removeItem('id');
-    localStorage.removeItem('name');
-    localStorage.removeItem('twitter');
+    localStorage.removeItem('user');
     localStorage.removeItem('linkedin');
     localStorage.removeItem('reddit');
+    localStorage.removeItem('mastodon');
     setAuth(false);
     setUser(null);
   };
