@@ -1,7 +1,43 @@
 import React from 'react';
-import { History as HistoryIcon } from 'lucide-react';
+import TableBanner from '../components/Table/TableBanner';
+import Table from '../components/Table/Table';
+import { useState } from 'react';
+import { useEffect } from 'react';
+import EmptyState from '../components/EmptyState';
+import EmptyHistoryIcon from '../assets/EmptyHistoryIcon';
+import TableSkeleton from '../components/Table/TableSkeleton';
+import { useAuth } from '../context/AuthContext';
+import axios from '../api/axios';
 
 const History = () => {
+    const header = ['post', 'social network', 'status', 'date'];
+    const [historyType, setHistoryType] = useState('all');
+    const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+    const [rowsInfo, setRowsInfo] = useState([]);
+
+    const { user } = useAuth();
+
+    const getHistory = async (url) => {
+        try {
+            const response = await axios.get(url);
+            const data = response.data;
+            setRowsInfo(data.data || data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoadingHistory(false);
+        }
+    };
+
+    useEffect(() => {
+        setIsLoadingHistory(true);
+        if (historyType === 'all') {
+            getHistory(`/histories/user/${user.id}`);
+        } else {
+            getHistory(`/histories/user/${user.id}/queue`);
+        }
+    }, [historyType, user?.id]);
+
     return (
         <div className="space-y-8">
             {/* Header */}
@@ -12,30 +48,27 @@ const History = () => {
                 </p>
             </div>
 
-            {/* Contenido placeholder */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-                <div className="text-center">
-                    <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-4">
-                        <HistoryIcon className="w-8 h-8 text-blue-600" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        Historial de publicaciones
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                        Esta funcionalidad estará disponible próximamente. Podrás ver un historial completo 
-                        de todas tus publicaciones con estadísticas y métricas de rendimiento.
-                    </p>
-                    <div className="bg-blue-50 rounded-lg p-4">
-                        <h4 className="font-medium text-blue-900 mb-2">Funcionalidades próximas:</h4>
-                        <ul className="text-sm text-blue-700 space-y-1">
-                            <li>• Historial completo de publicaciones</li>
-                            <li>• Estadísticas de engagement por red social</li>
-                            <li>• Filtros por fecha, red social y estado</li>
-                            <li>• Exportación de datos y reportes</li>
-                            <li>• Análisis de rendimiento y tendencias</li>
-                        </ul>
-                    </div>
-                </div>
+            {/* Contenido principal */}
+            <div className="relative overflow-hidden bg-white rounded-lg shadow-md border border-gray-200">
+                {
+                    isLoadingHistory ?
+                        <TableSkeleton />
+                        :
+                        (rowsInfo.length === 0 && historyType === 'all') ?
+                            <EmptyState 
+                                title="Historial vacío"
+                                description="No se encontraron publicaciones para mostrar"
+                                btnTitle="Nueva publicación"
+                                redirectTo="/"
+                            >
+                                <EmptyHistoryIcon width="3rem" height="3rem" styleClass="mx-auto text-gray-600 mb-4" />
+                            </EmptyState>
+                            :
+                            <>
+                                <TableBanner setHistoryType={setHistoryType} historyType={historyType} />
+                                <Table header={header} rowsInfo={rowsInfo} />
+                            </>
+                }
             </div>
         </div>
     );

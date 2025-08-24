@@ -11,7 +11,7 @@ import {
     LogOut 
 } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar = ({ onClose }) => {
     const { logout, user } = useAuth();
     const navigate = useNavigate();
 

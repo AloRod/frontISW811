@@ -16,19 +16,24 @@ const Layout = () => {
         return null;
     }
 
+
+    const closeSidebar = () => {
+        setSidebarOpen(false);
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Sidebar para desktop */}
             <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-                <Sidebar />
+                <Sidebar onClose={closeSidebar} />
             </div>
 
             {/* Sidebar móvil */}
             {sidebarOpen && (
                 <div className="relative z-50 lg:hidden">
-                    <div className="fixed inset-0 bg-gray-900/80" onClick={() => setSidebarOpen(false)} />
-                    <div className="fixed inset-0 flex">
-                        <div className="relative mr-16 flex w-full max-w-xs flex-1">
+                    <div className="fixed inset-0 bg-gray-900/80 z-20" onClick={() => setSidebarOpen(false)} />
+                    <div className="fixed flex z-30">
+                        <div className="relative mr-16 flex max-w-xs flex-1 h-screen">
                             <Sidebar />
                         </div>
                     </div>
