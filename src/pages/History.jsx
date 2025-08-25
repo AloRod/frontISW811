@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import EmptyState from '../components/EmptyState';
 import EmptyHistoryIcon from '../assets/EmptyHistoryIcon';
 import TableSkeleton from '../components/Table/TableSkeleton';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import axios from '../api/axios';
 
 const History = () => {

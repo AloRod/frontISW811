@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { 
     LayoutDashboard, 
     Calendar, 
@@ -21,7 +21,7 @@ const Sidebar = ({ onClose }) => {
     };
 
     const navigation = [
-        { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+        { name: 'Panel Principal', href: '/', icon: LayoutDashboard },
         { name: 'Programar', href: '/schedule', icon: Calendar },
         { name: 'Cola', href: '/queue', icon: Clock },
         { name: 'Historial', href: '/history', icon: History },

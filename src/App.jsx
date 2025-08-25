@@ -9,7 +9,7 @@ import Verify2FA from './pages/Verify2FA';
 import Enable2FA from './pages/Enable2FA';
 import OAuthAuth from './components/OAuthAuth';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
+import { useAuth } from './hooks/useAuth';
 import Layout from './components/Layout';
 import { 
     CONNECTION_LINKEDIN_ROUTE, 
@@ -30,6 +30,10 @@ const App = () => {
                     element: <Dashboard />,
                 },
                 {
+                    path: "/dashboard",
+                    element: <Dashboard />,
+                },
+                {
                     path: "/connections",
                     element: <Connections />,
                 },
@@ -40,10 +44,6 @@ const App = () => {
                 {
                     path: "/history",
                     element: <History />,
-                },
-                {
-                    path: "/verify-2fa",
-                    element: <Verify2FA />,
                 },
                 {
                     path: "/two-factor-authentication",
@@ -66,6 +66,10 @@ const App = () => {
         {
             path: '/register',
             element: <Register />,
+        },
+        {
+            path: '/verify-2fa',
+            element: <Verify2FA />,
         },
     ]);     
     
