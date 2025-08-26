@@ -6,7 +6,7 @@ const StatusTag = ({ status }) => {
       label: 'En Cola',
       className: 'bg-yellow-100 text-yellow-800 border-yellow-200'
     },
-    published: {
+    immediate: {
       label: 'Publicado',
       className: 'bg-green-100 text-green-800 border-green-200'
     },

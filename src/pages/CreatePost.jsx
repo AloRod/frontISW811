@@ -79,7 +79,7 @@ const CreatePost = () => {
   const handlePublishTypeChange = (type) => {
     setPublishType(type);
     if (type === 'immediate') {
-      setStatus('published');
+      setStatus('immediate');
       setDate(dayjs().format('YYYY-MM-DDTHH:mm'));
     } else if (type === 'scheduled') {
       setStatus('scheduled');
