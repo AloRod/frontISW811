@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useLocation } from 'react-router-dom';
 import axios from '../api/axios';
 import { getLink } from '../api/helpers';
 import Alert from './Alert';
@@ -13,6 +14,7 @@ import {
 
 const SocialAccountsPanel = ({ connections, onConnectionUpdate }) => {
     const { user } = useAuth();
+    const location = useLocation();
     const [platformStatus, setPlatformStatus] = useState({
         linkedin: { active: false, id: null, isLoading: false },
         reddit: { active: false, id: null, isLoading: false },
@@ -20,6 +22,9 @@ const SocialAccountsPanel = ({ connections, onConnectionUpdate }) => {
     });
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
+
+    // Verificar si estamos en una página de conexión específica
+    const isOnSpecificConnectionPage = location.pathname.includes('/connections/');
 
     const socialNetworks = [
         { 
@@ -137,11 +142,14 @@ const SocialAccountsPanel = ({ connections, onConnectionUpdate }) => {
 
         if (!network) return;
 
-        // Actualizar estado de carga
-        setPlatformStatus(prev => ({
-            ...prev,
-            [platformId]: { ...prev[platformId], isLoading: true }
-        }));
+        // Solo mostrar estado de carga si estamos en la página de conexiones general
+        // No mostrar en las páginas específicas de OAuth
+        if (!isOnSpecificConnectionPage) {
+            setPlatformStatus(prev => ({
+                ...prev,
+                [platformId]: { ...prev[platformId], isLoading: true }
+            }));
+        }
         setError(null);
         setSuccess(null);
 
@@ -186,11 +194,13 @@ const SocialAccountsPanel = ({ connections, onConnectionUpdate }) => {
             const errorMessage = error.response?.data?.message || error.message || `Error al ${platform.active ? 'desconectar' : 'conectar'} con ${network.name}`;
             setError(errorMessage);
             
-            // Restaurar estado de carga
-            setPlatformStatus(prev => ({
-                ...prev,
-                [platformId]: { ...prev[platformId], isLoading: false }
-            }));
+            // Restaurar estado de carga solo si no estamos en página específica
+            if (!isOnSpecificConnectionPage) {
+                setPlatformStatus(prev => ({
+                    ...prev,
+                    [platformId]: { ...prev[platformId], isLoading: false }
+                }));
+            }
         }
     };
 
@@ -213,7 +223,7 @@ const SocialAccountsPanel = ({ connections, onConnectionUpdate }) => {
                 {socialNetworks.map((network) => {
                     const status = platformStatus[network.id];
                     const isConnected = status.active;
-                    const isLoading = status.isLoading;
+                    const isLoading = status.isLoading && !isOnSpecificConnectionPage; // Solo mostrar loading si no estamos en página específica
                     
                     return (
                         <div
@@ -236,8 +246,6 @@ const SocialAccountsPanel = ({ connections, onConnectionUpdate }) => {
                                 </div>
                                 
                                 <div className="flex items-center space-x-2">
-                                    
-                                    
                                     <button
                                         onClick={() => handleClick(network.id)}
                                         disabled={isLoading}
@@ -263,22 +271,6 @@ const SocialAccountsPanel = ({ connections, onConnectionUpdate }) => {
                         </div>
                     );
                 })}
-            </div>
-
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                <div className="flex">
-                    <div className="flex-shrink-0">
-                        <Lightbulb className="w-5 h-5 text-blue-400" />
-                    </div>
-                    <div className="ml-3">
-                        <h3 className="text-sm font-medium text-blue-800">Consejo</h3>
-                        <div className="mt-1 text-sm text-blue-700">
-                            <p>
-                                Conecta al menos una red social para comenzar a publicar contenido desde tu dashboard.
-                            </p>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     );

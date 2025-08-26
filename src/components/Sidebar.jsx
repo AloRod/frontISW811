@@ -4,7 +4,8 @@ import { useAuth } from '../hooks/useAuth';
 import { 
     LayoutDashboard, 
     Calendar, 
-    Clock, 
+    Clock,
+    Newspaper,
     History, 
     Link, 
     Shield, 
@@ -22,8 +23,9 @@ const Sidebar = ({ onClose }) => {
 
     const navigation = [
         { name: 'Panel Principal', href: '/', icon: LayoutDashboard },
-        { name: 'Programar', href: '/schedule', icon: Calendar },
-        { name: 'Cola', href: '/queue', icon: Clock },
+        { name: 'Crear Publicacion', href: '/create-post', icon: Newspaper },
+        { name: 'Horario Semanal', href: '/schedule', icon: Calendar },
+        { name: 'Cola de Publicaciones', href: '/queue', icon: Clock },
         { name: 'Historial', href: '/history', icon: History },
         { name: 'Conexiones', href: '/connections', icon: Link },
         { name: '2FA', href: '/two-factor-authentication', icon: Shield },

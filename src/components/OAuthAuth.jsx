@@ -14,6 +14,18 @@ const OAuthAuth = ({ provider, url }) => {
 
   useEffect(() => {
     const code = new URLSearchParams(window.location.search).get('code');
+    const error = new URLSearchParams(window.location.search).get('error');
+    
+    // Si hay un error en la URL, redirigir inmediatamente
+    if (error) {
+      console.error(`OAuth error for ${provider}:`, error);
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.delete('error');
+      newUrl.searchParams.set('auth_error', error);
+      window.history.replaceState({}, '', newUrl.toString());
+      navigate(CONNECTIONS_ROUTE);
+      return;
+    }
     
     // Evitar procesamiento múltiple
     if (!code || !user?.id || hasProcessed) {
@@ -35,8 +47,8 @@ const OAuthAuth = ({ provider, url }) => {
         console.log(`Processing OAuth callback for ${provider} with code:`, code);
         const response = await axios.post(url, body);
 
-        if (!response.ok) {
-          throw new Error(`Error - ${response.status}`);
+        if (response.status !== 200 && response.status !== 201) {
+          throw new Error(`Error - ${response.status}: ${response.statusText}`);
         }
 
         console.log(`OAuth callback successful for ${provider}`);
@@ -44,10 +56,16 @@ const OAuthAuth = ({ provider, url }) => {
         // Limpiar el código de la URL para evitar reprocesamiento
         const newUrl = new URL(window.location);
         newUrl.searchParams.delete('code');
+        newUrl.searchParams.set('auth_success', 'true');
         window.history.replaceState({}, '', newUrl.toString());
 
       } catch (error) {
         console.error(`OAuth callback error for ${provider}:`, error);
+        // Limpiar el código de la URL y agregar error
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.delete('code');
+        newUrl.searchParams.set('auth_error', error.message || 'Error desconocido');
+        window.history.replaceState({}, '', newUrl.toString());
       } finally {
         finishProcessing();
         // Navegar después de un breve delay para asegurar que el estado se actualice
@@ -58,7 +76,7 @@ const OAuthAuth = ({ provider, url }) => {
     };
 
     getAccessToken();
-  }, [provider, url, user?.id, hasProcessed, startProcessing, finishProcessing]);
+  }, [provider, url, user?.id, hasProcessed, startProcessing, finishProcessing, navigate]);
 
   return (
     <Spinner text={`Conectando con ${provider}...`} />

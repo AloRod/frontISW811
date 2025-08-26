@@ -51,7 +51,7 @@ const ImmediatePostForm = ({ connections, onPostSuccess }) => {
             const body = {
                 "date": dateTime.date,
                 "time": dateTime.time,
-                "status": "posted",
+                "status": "immediate",
                 "user_id": user.id,
                 "post_text": formData.postText,
                 "social_network": formData.selectedNetworks.toString()

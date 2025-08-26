@@ -14,8 +14,12 @@ import Layout from './components/Layout';
 import { 
     CONNECTION_LINKEDIN_ROUTE, 
     CONNECTION_REDDIT_ROUTE, 
-    CONNECTION_MASTODON_ROUTE 
+    CONNECTION_MASTODON_ROUTE, 
+    CREATE_POST_ROUTE,
+    QUEUE_ROUTE
 } from './constants/routes';
+import CreatePost from './pages/CreatePost';
+import QueueManager from './pages/QueueManager';
 
 const App = () => {
     const { auth } = useAuth();
@@ -40,6 +44,14 @@ const App = () => {
                 {
                     path: "/schedule",
                     element: <Schedule />,
+                },
+                {
+                    path: CREATE_POST_ROUTE,
+                    element: <CreatePost />,
+                },
+                {
+                    path: QUEUE_ROUTE,
+                    element: <QueueManager />,
                 },
                 {
                     path: "/history",
