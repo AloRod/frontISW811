@@ -70,7 +70,7 @@ const OAuthAuth = ({ provider, url }) => {
         finishProcessing();
         // Navegar después de un breve delay para asegurar que el estado se actualice
         setTimeout(() => {
-          navigate(CONNECTIONS_ROUTE);
+          window.location.replace(CONNECTIONS_ROUTE);
         }, 100);
       }
     };

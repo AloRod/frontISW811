@@ -4,6 +4,7 @@ export const useOAuth = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasProcessed, setHasProcessed] = useState(false);
   const processingRef = useRef(false);
+  const navigatingRef = useRef(false);
 
   const startProcessing = () => {
     if (processingRef.current) {
@@ -12,6 +13,7 @@ export const useOAuth = () => {
     processingRef.current = true;
     setIsProcessing(true);
     setHasProcessed(false);
+    navigatingRef.current = false;
     return true;
   };
 
@@ -19,19 +21,21 @@ export const useOAuth = () => {
     processingRef.current = false;
     setIsProcessing(false);
     setHasProcessed(true);
+    navigatingRef.current = false;
   };
 
   const reset = () => {
     processingRef.current = false;
     setIsProcessing(false);
     setHasProcessed(false);
+    navigatingRef.current = false;
   };
 
   // Resetear el estado cuando cambie la URL
   useEffect(() => {
     const handleUrlChange = () => {
       const code = new URLSearchParams(window.location.search).get('code');
-      if (!code) {
+      if (!code && !navigatingRef.current) {
         reset();
       }
     };

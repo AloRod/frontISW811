@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Clock, Calendar, Save, Loader2 } from 'lucide-react';
 
-const ScheduleModal = ({ isOpen, onClose, onSave, schedule = null, userId }) => {
+const ScheduleModal = ({ isOpen, onClose, onSave, schedule = null, userId, existingSchedules = [], selectedDay = null}) => {
     const [formData, setFormData] = useState({
         day_of_week: 1,
         time: '09:00',
@@ -28,22 +28,57 @@ const ScheduleModal = ({ isOpen, onClose, onSave, schedule = null, userId }) => 
                 user_id: userId
             });
         } else {
+            const defaultDay = selectedDay || 1;
             setFormData({
-                day_of_week: 1,
+                day_of_week: defaultDay,
                 time: '09:00',
                 user_id: userId
             });
         }
         setErrors({});
-    }, [schedule, userId]);
+    }, [schedule, userId,selectedDay]);
+
+    const validateSchedule = () => {
+        const newErrors = {};
+        
+        // Validar que no haya un horario duplicado en el mismo día
+        const isDuplicate = existingSchedules.some(existingSchedule => {
+            // Si estamos editando, excluir el horario actual
+            if (schedule && existingSchedule.id === schedule.id) {
+                return false;
+            }
+            
+            return existingSchedule.day_of_week === formData.day_of_week && 
+                   existingSchedule.time === formData.time;
+        });
+        
+        if (isDuplicate) {
+            newErrors.time = ['Ya existe un horario programado para este día y hora'];
+        }
+        
+        return newErrors;
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        const validationErrors = validateSchedule();
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+        
         setLoading(true);
         setErrors({});
 
         try {
-            await onSave(formData, schedule?.id);
+            // Asegurar que el tiempo esté en formato H:i para el backend
+            const timeToSend = formData.time;
+            
+            await onSave({
+                ...formData,
+                time: timeToSend
+            }, schedule?.id);
             onClose();
         } catch (error) {
             if (error.response?.data) {
@@ -58,8 +93,32 @@ const ScheduleModal = ({ isOpen, onClose, onSave, schedule = null, userId }) => 
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+        
+        // Limpiar errores del campo modificado
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: null }));
+        }
+        
+        // Si se cambió el día o la hora, validar inmediatamente duplicados
+        if ((field === 'day_of_week' || field === 'time') && existingSchedules.length > 0) {
+            const newFormData = { ...formData, [field]: value };
+            const isDuplicate = existingSchedules.some(existingSchedule => {
+                if (schedule && existingSchedule.id === schedule.id) {
+                    return false;
+                }
+                return existingSchedule.day_of_week === newFormData.day_of_week && 
+                       existingSchedule.time === newFormData.time;
+            });
+            
+            if (isDuplicate) {
+                setErrors(prev => ({ 
+                    ...prev, 
+                    time: ['Ya existe un horario programado para este día y hora'] 
+                }));
+            } else if (errors.time && errors.time[0] === 'Ya existe un horario programado para este día y hora') {
+                // Limpiar el error de duplicado si ya no es válido
+                setErrors(prev => ({ ...prev, time: null }));
+            }
         }
     };
 
@@ -118,7 +177,6 @@ const ScheduleModal = ({ isOpen, onClose, onSave, schedule = null, userId }) => 
                                     }`}
                                 >
                                     <div className="text-xs font-medium">{day.abbr}</div>
-                                    <div className="text-xs opacity-75">{day.label}</div>
                                 </button>
                             ))}
                         </div>
@@ -172,8 +230,12 @@ const ScheduleModal = ({ isOpen, onClose, onSave, schedule = null, userId }) => 
                         </button>
                         <button
                             type="submit"
-                            disabled={loading}
-                            className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+                            disabled={loading || Object.keys(errors).length > 0}
+                            className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
+                                Object.keys(errors).length > 0
+                                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                                    : 'bg-purple-600 text-white hover:bg-purple-700'
+                            } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             {loading ? (
                                 <>

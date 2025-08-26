@@ -57,7 +57,7 @@ const DaySchedule = ({
                         <Clock className="w-8 h-8 text-gray-400 mx-auto mb-3" />
                         <p className="text-sm text-gray-500 mb-4">No hay horarios programados</p>
                         <button
-                            onClick={() => onAddSchedule()}
+                            onClick={() => onAddSchedule(day.day_of_week)}
                             className="inline-flex items-center space-x-2 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
                         >
                             <Plus className="w-4 h-4" />
@@ -105,7 +105,7 @@ const DaySchedule = ({
                         
                         {/* Add new schedule button */}
                         <button
-                            onClick={() => onAddSchedule()}
+                            onClick={() => onAddSchedule(day.day_of_week)}
                             className="w-full flex items-center justify-center space-x-2 p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-colors"
                         >
                             <Plus className="w-4 h-4" />

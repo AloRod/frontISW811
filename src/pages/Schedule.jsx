@@ -21,6 +21,7 @@ const Schedule = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingSchedule, setEditingSchedule] = useState(null);
     const [alert, setAlert] = useState(null);
+    const [selectedDay, setSelectedDay] = useState(null);
 
     // Obtener el día actual (1-7, donde 1 es lunes)
     const getCurrentDay = () => {
@@ -69,9 +70,14 @@ const Schedule = () => {
         }
     }, [user?.id]);
 
-    const handleAddSchedule = () => {
+    const handleAddSchedule = (selectedDay = null) => {
         setEditingSchedule(null);
         setModalOpen(true);
+        if (selectedDay) {
+            setSelectedDay(selectedDay);
+        } else {
+            setSelectedDay(null);
+        }
     };
 
     const handleEditSchedule = (schedule) => {
@@ -118,6 +124,21 @@ const Schedule = () => {
         showAlert('info', 'Datos actualizados');
     };
 
+    const getAllSchedules = () => {
+        const allSchedules = [];
+        weeklySchedule.forEach(day => {
+            day.times.forEach(schedule => {
+                allSchedules.push({
+                    id: schedule.id,
+                    day_of_week: day.day_of_week,
+                    time: schedule.time,
+                    time_formatted: schedule.time_formatted,
+                    time_12h: schedule.time_12h
+                });
+            });
+        });
+        return allSchedules;
+    };
 
 
     if (loading) {
@@ -191,7 +212,7 @@ const Schedule = () => {
                                 key={day.day_of_week}
                                 day={day}
                                 schedules={day.times}
-                                onAddSchedule={() => handleAddSchedule()}
+                                onAddSchedule={(selectedDay) => handleAddSchedule(selectedDay)}
                                 onEditSchedule={handleEditSchedule}
                                 onDeleteSchedule={handleDeleteSchedule}
                                 isToday={day.day_of_week === getCurrentDay()}
@@ -271,10 +292,13 @@ const Schedule = () => {
                 onClose={() => {
                     setModalOpen(false);
                     setEditingSchedule(null);
+                    setSelectedDay(null);
                 }}
                 onSave={handleSaveSchedule}
                 schedule={editingSchedule}
                 userId={user?.id}
+                existingSchedules={getAllSchedules()}
+                selectedDay={selectedDay}
             />
         </div>
     );
