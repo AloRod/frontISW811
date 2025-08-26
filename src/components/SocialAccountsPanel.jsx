@@ -48,72 +48,86 @@ const SocialAccountsPanel = ({ connections, onConnectionUpdate }) => {
         }
     ];
 
+    // Función para obtener el estado de las plataformas
+    const fetchPlatformStatus = async () => {
+        if (!user?.id) return;
+
+        try {
+            const response = await axios.get(`${config.API_URL}/connections/user/${user.id}/platform-status`);
+            console.log('Raw API response:', response);
+            const statusData = response.data.data || response.data;
+            
+            console.log('Platform status response:', statusData);
+
+            // Verificar que statusData sea un array
+            if (!Array.isArray(statusData)) {
+                console.error('Invalid response format:', statusData);
+                setError('Formato de respuesta inválido');
+                return;
+            }
+
+            const newStatus = {
+                linkedin: { active: false, id: null, isLoading: false },
+                reddit: { active: false, id: null, isLoading: false },
+                mastodon: { active: false, id: null, isLoading: false }
+            };
+            
+            statusData.forEach(item => {
+                if (newStatus[item.platform]) {
+                    newStatus[item.platform] = {
+                        active: item.status === true,
+                        id: item.id,
+                        isLoading: false
+                    };
+                }
+            });
+
+            console.log('Processed status:', newStatus);
+            setPlatformStatus(newStatus);
+            setError(null); // Limpiar errores previos si la carga es exitosa
+        } catch (error) {
+            console.error('Error fetching platform status:', error);
+            setError('Error al obtener el estado de las conexiones');
+        }
+    };
+
     // Obtener el estado inicial de las conexiones
     useEffect(() => {
-        const fetchPlatformStatus = async () => {
-            if (!user?.id) return;
-
-            try {
-                const response = await axios.get(`${config.API_URL}/connections/user/${user.id}/platform-status`);
-                console.log('Raw API response:', response);
-                const statusData = response.data.data || response.data;
-                
-                console.log('Platform status response:', statusData);
-
-                // Verificar que statusData sea un array
-                if (!Array.isArray(statusData)) {
-                    console.error('Invalid response format:', statusData);
-                    setError('Formato de respuesta inválido');
-                    return;
-                }
-
-                const newStatus = {
-                    linkedin: { active: false, id: null, isLoading: false },
-                    reddit: { active: false, id: null, isLoading: false },
-                    mastodon: { active: false, id: null, isLoading: false }
-                };
-                
-                statusData.forEach(item => {
-                    if (newStatus[item.platform]) {
-                        newStatus[item.platform] = {
-                            active: item.status === true,
-                            id: item.id,
-                            isLoading: false
-                        };
-                    }
-                });
-
-                console.log('Processed status:', newStatus);
-                setPlatformStatus(newStatus);
-                setError(null); // Limpiar errores previos si la carga es exitosa
-            } catch (error) {
-                console.error('Error fetching platform status:', error);
-                setError('Error al obtener el estado de las conexiones');
-            }
-        };
-
         fetchPlatformStatus();
-    }, [user?.id]);
+    }, []);
 
     // Recargar el estado cuando el usuario regrese de la autorización OAuth
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const authSuccess = urlParams.get('auth_success');
         const authError = urlParams.get('auth_error');
+        const code = urlParams.get('code');
+        
+        // Si hay un código de autorización en la URL, significa que el usuario regresó de OAuth
+        // pero no debería estar en esta página, así que lo limpiamos
+        if (code) {
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.delete('code');
+            window.history.replaceState({}, '', newUrl.toString());
+        }
         
         if (authSuccess === 'true') {
             setSuccess('Conexión establecida exitosamente');
+            // Limpiar parámetros de URL
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.delete('auth_success');
+            window.history.replaceState({}, '', newUrl.toString());
+            
             // Recargar el estado de las conexiones después de un breve delay
             setTimeout(() => {
-                window.location.search = '';
-                // Recargar la página para obtener el estado actualizado
-                window.location.reload();
-            }, 2000);
+                fetchPlatformStatus();
+            }, 1000);
         } else if (authError) {
             setError(`Error en la autorización: ${authError}`);
-            setTimeout(() => {
-                window.location.search = '';
-            }, 3000);
+            // Limpiar parámetros de URL
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.delete('auth_error');
+            window.history.replaceState({}, '', newUrl.toString());
         }
     }, []);
 
@@ -150,8 +164,8 @@ const SocialAccountsPanel = ({ connections, onConnectionUpdate }) => {
                 
                 // Recargar el estado de las conexiones después de desconectar
                 setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
+                    fetchPlatformStatus();
+                }, 1000);
             } else {
                 // Conectar
                 console.log('Attempting to connect to:', network.oauthUrl);

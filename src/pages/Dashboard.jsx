@@ -15,7 +15,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         fetchConnections();
-    }, [user?.id]);
+    }, []);
 
     // Recargar conexiones cuando el usuario regrese de autorización OAuth
     useEffect(() => {
