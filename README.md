@@ -4,6 +4,19 @@
 
 Una aplicación web moderna para gestionar y publicar contenido en múltiples redes sociales desde una sola plataforma.
 
+## Echa un vistazo
+![Página de Login](/images/loggin.png)
+Interfaz de inicio de sesión con fondo degradado, campos para correo electrónico y contraseña, y enlace de registro.
+
+![Dashboard Principal](/images/dashboard.png)
+Panel principal con sidebar de navegación, sección de conexiones sociales (LinkedIn, Reddit, Mastodon) y acciones rápidas para crear publicaciones y gestionar horarios.
+
+![Página de Programación](/images/schedule.png)
+Vista de programación semanal organizada por días, con opción de agregar horarios personalizados para automatizar publicaciones.
+
+![Autenticación 2FA](/images/2fa.png)
+Panel de configuración de autenticación de dos factores con estado actual y botón para mostrar código QR para Google Authenticator.
+
 ## Características
 
 ### Implementadas
@@ -231,16 +244,6 @@ C:\Users\Fran\Desktop\ISW811\K\socialhub\backend\backISW811
 - Interceptores de Axios para manejo de errores 401
 - Variables de entorno para configuración sensible
 - Preparado para implementación de 2FA
-
-## Próximas Funcionalidades
-
-- Programación de publicaciones con calendario
-- Historial detallado con métricas de engagement
-- Autenticación de dos factores
-- Cola de publicaciones
-- Análisis de mejores horarios para publicar
-- Exportación de reportes
-- Notificaciones push
 
 ## Scripts Disponibles
 
